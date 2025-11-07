@@ -3,98 +3,114 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Local Password Vault</title>
+  <title>Local Password Vault — Enhanced</title>
   <style>
     :root{
-      --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --danger:#ef4444; --warn:#f59e0b;
-      --ring:#3b82f6; --card:#0b1220; --border:#1f2937; --shadow:0 10px 25px rgba(0,0,0,.35);
+      /* Light */
+      --bg-light:#f8fafc; --text-light:#0f172a; --panel-light:#ffffff; --muted-light:#475569; --border-light:#d1d5db;
+      /* Dark */
+      --bg-dark:#0f172a; --text-dark:#e5e7eb; --panel-dark:#111827; --muted-dark:#94a3b8; --border-dark:#1f2937;
+      /* Brand */
+      --ring:#3b82f6; --accent:#22c55e; --danger:#ef4444; --warn:#f59e0b; --shadow:0 12px 30px rgba(0,0,0,.18);
     }
+    /* Theme vars set in JS -> --bg, --text, --panel, --muted, --border */
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";background:linear-gradient(120deg,#0b1020,#0e152a 30%,#0a0f1e);color:var(--text)}
-    .wrap{max-width:980px;margin:40px auto;padding:0 16px}
-    .card{background:radial-gradient(1000px 400px at -10% -20%,rgba(59,130,246,.15),transparent),
-                   radial-gradient(900px 400px at 120% -30%,rgba(34,197,94,.12),transparent),
-                   var(--panel);
-          border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow);}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:var(--bg); color:var(--text); transition:background .35s,color .35s}
+    .wrap{max-width:1040px;margin:36px auto;padding:0 16px}
+    .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .title{display:flex;align-items:center;gap:10px}
+    .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--ring),var(--accent));box-shadow:0 4px 14px rgba(34,197,94,.35)}
+    .switch{display:inline-flex;align-items:center;gap:8px}
+    .switch input{appearance:none;width:46px;height:26px;border-radius:26px;background:var(--border);position:relative;outline:0;transition:.25s}
+    .switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--text);transition:.25s}
+    .switch input:checked{background:var(--accent)}
+    .switch input:checked::after{transform:translateX(20px)}
+
+    .card{background:var(--panel); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); overflow:hidden}
     .pad{padding:18px}
-    h1{font-size:26px;margin:0 0 8px}
-    h2{font-size:18px;margin:12px 0}
+    h1{font-size:24px;margin:0}
     p{color:var(--muted)}
-    label{display:block;font-size:14px;color:var(--muted);margin:10px 0 6px}
-    input, textarea, select {width:100%;background:#0b1220;border:1px solid var(--border);color:var(--text);
-      border-radius:10px;padding:10px 12px;outline:none}
+
+    input, textarea, select {width:100%;background:transparent;border:1px solid var(--border);color:inherit;border-radius:10px;padding:10px 12px;outline:none}
     input:focus, textarea:focus, select:focus{border-color:var(--ring);box-shadow:0 0 0 3px rgba(59,130,246,.25)}
-    button{appearance:none;border:1px solid var(--border);background:#0d1326;color:var(--text);padding:10px 14px;border-radius:10px;cursor:pointer}
-    button:hover{filter:brightness(1.08)}
+    button{appearance:none;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.06));color:inherit;padding:10px 14px;border-radius:10px;cursor:pointer;transition:transform .15s}
+    button:hover{transform:translateY(-1px)}
     .btn{display:inline-flex;align-items:center;gap:8px}
-    .btn.primary{background:linear-gradient(180deg,#1f2937,#0d1326);border-color:#334155}
-    .btn.accent{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#16a34a;color:#04120a;font-weight:600}
-    .btn.warn{background:linear-gradient(180deg,#f59e0b,#b45309);color:#1a0b00;border-color:#b45309}
-    .btn.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);color:#1a0b00;border-color:#b91c1c}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .col{flex:1 1 240px}
+    .btn.accent{background:linear-gradient(180deg,#22c55e,#16a34a); color:#05290f; border-color:#16a34a; font-weight:600}
+    .btn.warn{background:linear-gradient(180deg,#f59e0b,#b45309); color:#1a0b00; border-color:#b45309}
+    .btn.danger{background:linear-gradient(180deg,#ef4444,#b91c1c); color:#1a0b00; border-color:#b91c1c}
+
     .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:12px 0 8px}
-    .toolbar .left, .toolbar .right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    .table th{font-weight:600;color:#cbd5e1;font-size:13px;text-align:left;padding:0 10px}
-    .table td{background:var(--card);border:1px solid var(--border);padding:10px;border-radius:10px}
-    .table tr td:first-child{border-top-right-radius:0;border-bottom-right-radius:0}
-    .table tr td:last-child{border-top-left-radius:0;border-bottom-left-radius:0}
-    .tag{font-size:12px;color:#a3e635;background:#1a2e12;border:1px solid #334155;padding:2px 8px;border-radius:999px}
-    .muted{color:var(--muted)}
+    .toolbar .left,.toolbar .right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+    .metrics{display:flex;gap:10px;flex-wrap:wrap}
+    .badge{font-size:12px;border:1px solid var(--border);padding:4px 10px;border-radius:999px;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:1fr;gap:10px}
+    @media (min-width:800px){ .grid{grid-template-columns:1.2fr .8fr} }
+
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th{font-weight:600;color:var(--muted);font-size:13px;text-align:left;padding:0 10px}
+    td{background:var(--panel);border:1px solid var(--border);padding:10px;border-radius:10px}
+    tr td:first-child{border-top-right-radius:0;border-bottom-right-radius:0}
+    tr td:last-child{border-top-left-radius:0;border-bottom-left-radius:0}
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-    .hint{font-size:12px;color:#9ca3af}
-    .hr{height:1px;background:linear-gradient(90deg,transparent,#2a364d,transparent);margin:14px 0}
-    .hidden{display:none}
+    .muted{color:var(--muted)}
     .right{text-align:right}
-    .flex{display:flex;gap:10px;align-items:center}
-    .grow{flex:1}
-    .center{display:flex;align-items:center;justify-content:center}
+
+    .hint{font-size:12px;color:var(--muted)}
+    .hr{height:1px;background:linear-gradient(90deg,transparent,#2a364d,transparent);opacity:.5;margin:14px 0}
+    .hidden{display:none}
+
+    /* Toast */
+    .toast{position:fixed;right:16px;bottom:16px;background:var(--panel);border:1px solid var(--border);padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .25s, transform .25s}
+    .toast.show{opacity:1;transform:none}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- Auth Card -->
+    <div class="nav">
+      <div class="title"><div class="logo"></div><h1>Local Password Vault</h1></div>
+      <label class="switch"><input id="themeToggle" type="checkbox"><span>🌞 / 🌜</span></label>
+    </div>
+
+    <!-- AUTH CARD -->
     <div id="authCard" class="card pad">
-      <h1>Local Password Vault</h1>
       <p>Şifrələriniz yalnız bu brauzerdə <strong>yerli</strong> saxlanılır və <strong>AES‑GCM</strong> ilə şifrələnir. İlk dəfə istifadə edirsinizsə, master şifrə yaradın.</p>
-      <div id="setupBox" class="">
-        <label>Master şifrə</label>
-        <input id="masterPassword" type="password" placeholder="Güclü master şifrə" />
-        <div class="row">
-          <div class="col">
-            <label>Yeni istifadəçi? (ilk quraşdırma) — <span class="hint">seçin</span></label>
-            <select id="isFirstTime">
-              <option value="auto" selected>Avtomatik aşkarla</option>
-              <option value="yes">Bəli — yeni vault yarad</option>
-              <option value="no">Xeyr — mövcud vault-u aç</option>
-            </select>
-          </div>
-          <div class="col center">
-            <button id="unlockBtn" class="btn accent">Daxil ol / Yarat</button>
-          </div>
+      <div class="grid">
+        <div>
+          <label>Master şifrə</label>
+          <input id="masterPassword" type="password" placeholder="Güclü master şifrə" />
+          <div class="hint" style="margin-top:6px">Master şifrəni <u>unutmayın</u> — bərpa yoxdur.</div>
         </div>
-        <p class="hint">Master şifrəni <u>unutmayın</u> — bərpa yoxdur. 2FA kodlarınızı ayrıca tətbiqdə saxlayın.</p>
+        <div>
+          <label>Rejim</label>
+          <select id="isFirstTime">
+            <option value="auto" selected>Avtomatik (mövcuddursa aç)</option>
+            <option value="yes">Yeni vault yarat</option>
+            <option value="no">Mövcud vault-u aç</option>
+          </select>
+          <button id="unlockBtn" class="btn accent" style="margin-top:12px;width:100%">Daxil ol / Yarat</button>
+        </div>
       </div>
     </div>
 
-    <!-- App Card -->
+    <!-- APP CARD -->
     <div id="appCard" class="card pad hidden">
       <div class="toolbar">
-        <div class="left">
-          <strong>Vault açıldı</strong>
-          <span id="entryCount" class="tag">0 qeydlər</span>
-          <span id="updatedAt" class="hint"></span>
+        <div class="left metrics">
+          <span id="entryCount" class="badge">0 qeyd</span>
+          <span id="updatedAt" class="badge">—</span>
         </div>
         <div class="right">
           <input id="q" placeholder="Axtarış (başlıq, istifadəçi, URL, qeyd)" />
-          <button id="addBtn" class="btn primary">Yeni</button>
+          <button id="addBtn" class="btn">Yeni</button>
           <button id="lockBtn" class="btn warn">Kilidlə</button>
         </div>
       </div>
       <div class="hr"></div>
 
-      <table class="table" id="list">
+      <table>
         <thead>
           <tr>
             <th>Başlıq</th>
@@ -119,47 +135,48 @@
         <div class="right hint">Məlumatlar localStorage-də şifrəli saxlanılır.</div>
       </div>
 
-      <!-- Editor Modal (inline simple) -->
+      <!-- Editor (inline modal-style section) -->
       <div id="editor" class="card pad hidden" style="margin-top:14px">
-        <h2 id="editorTitle">Qeyd əlavə et</h2>
-        <div class="row">
-          <div class="col">
+        <h2 id="editorTitle" style="margin:0 0 8px">Qeyd əlavə et</h2>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+          <div>
             <label>Başlıq</label>
             <input id="e_title" placeholder="məs: Instagram" />
           </div>
-          <div class="col">
+          <div>
             <label>İstifadəçi adı / E‑poçt</label>
             <input id="e_username" placeholder="username" />
           </div>
-        </div>
-        <div class="row">
-          <div class="col">
+          <div>
             <label>Şifrə</label>
-            <div class="flex">
-              <input id="e_password" type="password" class="grow mono" />
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="e_password" type="password" class="mono" />
               <button id="togglePwd" class="btn">Göstər</button>
               <button id="copyPwd" class="btn">Kopyala</button>
             </div>
             <div class="hint" id="pwdStrength">Güclülük: —</div>
           </div>
-          <div class="col">
+          <div>
             <label>URL</label>
             <input id="e_url" placeholder="https://…" />
           </div>
         </div>
-        <label>Qeyd</label>
+        <label style="margin-top:10px;display:block">Qeyd</label>
         <textarea id="e_notes" rows="3" placeholder="Opsional qeydlər"></textarea>
 
-        <div class="row" style="align-items:flex-end">
-          <div class="col">
-            <label>Şifrə generatoru</label>
-            <div class="flex">
-              <input id="genLen" type="number" min="8" max="64" value="16" style="width:120px" />
-              <label class="flex" style="gap:6px"><input id="genSymbols" type="checkbox" checked /> Simvollar</label>
-              <button id="genBtn" class="btn">Generasiya</button>
+        <div class="hr"></div>
+        <div class="toolbar">
+          <div class="left" style="align-items:flex-end">
+            <div>
+              <label>Şifrə generatoru</label>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <input id="genLen" type="number" min="8" max="64" value="16" style="width:120px" />
+                <label style="display:inline-flex;gap:6px;align-items:center"><input id="genSymbols" type="checkbox" checked /> Simvollar</label>
+                <button id="genBtn" class="btn">Generasiya</button>
+              </div>
             </div>
           </div>
-          <div class="col right">
+          <div class="right">
             <button id="saveBtn" class="btn accent">Yadda saxla</button>
             <button id="cancelBtn" class="btn">Ləğv et</button>
           </div>
@@ -168,21 +185,40 @@
     </div>
   </div>
 
+  <div id="toast" class="toast"></div>
+
 <script>
-// ===== Utilities =====
+// ===== Theme handling =====
+const themeToggle = document.getElementById('themeToggle');
+function setTheme(dark){
+  document.body.style.setProperty('--bg', dark? 'var(--bg-dark)' : 'var(--bg-light)');
+  document.body.style.setProperty('--text', dark? 'var(--text-dark)' : 'var(--text-light)');
+  document.body.style.setProperty('--panel', dark? 'var(--panel-dark)' : 'var(--panel-light)');
+  document.body.style.setProperty('--muted', dark? 'var(--muted-dark)' : 'var(--muted-light)');
+  document.body.style.setProperty('--border', dark? 'var(--border-dark)' : 'var(--border-light)');
+  localStorage.setItem('theme', dark? 'dark':'light');
+}
+if(localStorage.getItem('theme')==='dark'){ themeToggle.checked=true; setTheme(true);} else { setTheme(false); }
+
+themeToggle.addEventListener('change',()=> setTheme(themeToggle.checked));
+
+// ===== Small helpers =====
 const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
+const nowISO = () => new Date().toISOString();
+const uid = () => crypto.getRandomValues(new Uint32Array(4)).join('-');
+const toastEl = $('#toast');
+function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=> toastEl.classList.remove('show'), 1600); }
+
+// Base64 helpers
 const b64 = {
   enc: buf => btoa(String.fromCharCode(...new Uint8Array(buf))),
   dec: str => Uint8Array.from(atob(str), c => c.charCodeAt(0)).buffer,
 };
-const nowISO = () => new Date().toISOString();
-const uid = () => crypto.getRandomValues(new Uint32Array(4)).join('-');
 
 // ===== Crypto (Web Crypto API) =====
 const ITER_DEFAULT = 250000; // PBKDF2 iterations
 const SALT_BYTES = 16;
-const IV_BYTES = 12; // AES-GCM recommended 96-bit
+const IV_BYTES = 12; // AES-GCM 96-bit
 
 async function deriveKey(password, saltB64, iterations){
   const enc = new TextEncoder();
@@ -209,33 +245,25 @@ async function decryptJSON(ciphertextB64, ivB64, key){
 
 // ===== Storage schema =====
 // localStorage['vault'] = JSON.stringify({version:1, salt, iterations, iv, ciphertext, updatedAt})
-function hasVault(){
-  try{ const v = JSON.parse(localStorage.getItem('vault')||'null'); return !!(v && v.ciphertext); }catch(e){ return false }
-}
-function readVaultMeta(){
-  try{ return JSON.parse(localStorage.getItem('vault')||'null'); }catch(e){ return null }
-}
+function hasVault(){ try{ const v = JSON.parse(localStorage.getItem('vault')||'null'); return !!(v && v.ciphertext); }catch(e){ return false } }
+function readVaultMeta(){ try{ return JSON.parse(localStorage.getItem('vault')||'null'); }catch(e){ return null } }
 function writeVault(meta){ localStorage.setItem('vault', JSON.stringify(meta)); }
 function clearVaultInMemory(){ state.vault = {version:1, entries:[]}; }
 
 // ===== App state =====
-const state = {
-  key: null, // CryptoKey
-  vault: {version:1, entries:[]},
-  filter: '',
-  editingId: null,
-};
+const state = { key:null, vault:{version:1, entries:[]}, filter:'', editingId:null };
+
+function esc(s){ return (s||'').replace(/[&<>"']/g, c=> ({'&':'&','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]) ); }
 
 function renderList(){
-  const tbody = $('#tbody');
-  tbody.innerHTML = '';
+  const tbody = $('#tbody'); tbody.innerHTML = '';
   const q = state.filter.toLowerCase().trim();
   const rows = state.vault.entries
     .filter(e => !q || [e.title,e.username,e.url,e.notes].some(x => (x||'').toLowerCase().includes(q)))
     .sort((a,b)=> (b.updatedAt||b.createdAt).localeCompare(a.updatedAt||a.createdAt));
-  $('#entryCount').textContent = `${state.vault.entries.length} qeydlər`;
+  $('#entryCount').textContent = `${state.vault.entries.length} qeyd`;
   const meta = readVaultMeta();
-  $('#updatedAt').textContent = meta?.updatedAt ? `• Son yenilənmə: ${new Date(meta.updatedAt).toLocaleString()}` : '';
+  $('#updatedAt').textContent = meta?.updatedAt ? `Son yenilənmə: ${new Date(meta.updatedAt).toLocaleString()}` : '—';
 
   for(const e of rows){
     const tr = document.createElement('tr');
@@ -244,7 +272,7 @@ function renderList(){
       <td class="mono">${esc(e.username||'')}</td>
       <td>
         <span class="mono muted">••••••••</span>
-        <div class="flex" style="margin-top:6px">
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
           <button class="btn" data-act="reveal" data-id="${e.id}">Göstər</button>
           <button class="btn" data-act="copy" data-id="${e.id}">Kopyala</button>
         </div>
@@ -259,7 +287,38 @@ function renderList(){
   }
 }
 
-function esc(s){ return (s||'').replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]) ); }
+// ===== Vault ops =====
+async function saveVaultToStorage(){
+  if(!state.key) throw new Error('Key yoxdur');
+  const meta0 = readVaultMeta() || {};
+  const salt = meta0.salt || b64.enc(crypto.getRandomValues(new Uint8Array(SALT_BYTES)));
+  const iterations = meta0.iterations || ITER_DEFAULT;
+  const {ciphertext, iv} = await encryptJSON(state.vault, state.key);
+  writeVault({ version:1, salt, iterations, iv, ciphertext, updatedAt: nowISO() });
+}
+
+async function loadVaultFromStorageWith(password){
+  let meta = readVaultMeta();
+  if(!meta){ // fresh vault
+    meta = { version:1, salt: b64.enc(crypto.getRandomValues(new Uint8Array(SALT_BYTES))), iterations: ITER_DEFAULT };
+    writeVault(meta);
+  }
+  const key = await deriveKey(password, meta.salt, meta.iterations||ITER_DEFAULT);
+  if(!meta.ciphertext){ // init empty
+    state.key = key; clearVaultInMemory(); await saveVaultToStorage(); return true;
+  }
+  try{ state.vault = await decryptJSON(meta.ciphertext, meta.iv, key); state.key = key; return true; }
+  catch(err){ console.error(err); return false; }
+}
+
+async function changeMasterPasswordFlow(){
+  const newPw = prompt('Yeni master şifrəni daxil edin:'); if(!newPw) return;
+  const newSalt = b64.enc(crypto.getRandomValues(new Uint8Array(SALT_BYTES)));
+  const newKey = await deriveKey(newPw, newSalt, ITER_DEFAULT);
+  const {ciphertext, iv} = await encryptJSON(state.vault, newKey);
+  writeVault({version:1, salt:newSalt, iterations:ITER_DEFAULT, iv, ciphertext, updatedAt: nowISO()});
+  toast('Master şifrə dəyişdirildi');
+}
 
 // ===== Editor helpers =====
 function openEditor(entry){
@@ -275,62 +334,18 @@ function openEditor(entry){
 }
 function closeEditor(){ $('#editor').classList.add('hidden'); state.editingId = null; }
 
-// ===== Vault ops =====
-async function saveVaultToStorage(){
-  if(!state.key) throw new Error('Key yoxdur');
-  const {ciphertext, iv} = await encryptJSON(state.vault, state.key);
-  const meta = readVaultMeta() || {};
-  const salt = meta.salt || b64.enc(crypto.getRandomValues(new Uint8Array(SALT_BYTES)));
-  const iterations = meta.iterations || ITER_DEFAULT;
-  writeVault({ version:1, salt, iterations, iv, ciphertext, updatedAt: nowISO() });
-}
-
-async function loadVaultFromStorageWith(password){
-  let meta = readVaultMeta();
-  if(!meta){ // fresh vault
-    meta = { version:1, salt: b64.enc(crypto.getRandomValues(new Uint8Array(SALT_BYTES))), iterations: ITER_DEFAULT };
-    writeVault(meta);
-  }
-  const key = await deriveKey(password, meta.salt, meta.iterations||ITER_DEFAULT);
-  // If no ciphertext yet -> initialize empty vault and persist
-  if(!meta.ciphertext){
-    state.key = key;
-    clearVaultInMemory();
-    await saveVaultToStorage();
-    return true;
-  }
-  try{
-    state.vault = await decryptJSON(meta.ciphertext, meta.iv, key);
-    state.key = key;
-    return true;
-  }catch(err){
-    console.error(err);
-    return false;
-  }
-}
-
-async function changeMasterPasswordFlow(){
-  const newPw = prompt('Yeni master şifrəni daxil edin (boş buraxmayın):');
-  if(!newPw) return;
-  // create new salt and re-encrypt
-  const newSalt = b64.enc(crypto.getRandomValues(new Uint8Array(SALT_BYTES)));
-  const newKey = await deriveKey(newPw, newSalt, ITER_DEFAULT);
-  const {ciphertext, iv} = await encryptJSON(state.vault, newKey);
-  writeVault({version:1, salt:newSalt, iterations:ITER_DEFAULT, iv, ciphertext, updatedAt: nowISO()});
-  alert('Master şifrə yeniləndi. Unutmayın!');
+function updatePwdStrength(){
+  const s = ($('#e_password').value||'');
+  let score = 0; if(s.length>=12) score++; if(/[a-z]/.test(s)&&/[A-Z]/.test(s)) score++; if(/\d/.test(s)) score++; if(/[^\w]/.test(s)) score++;
+  const map = ['Çox zəif','Zəif','Orta','Yaxşı','Güclü'];
+  $('#pwdStrength').textContent = 'Güclülük: ' + map[score];
 }
 
 // ===== UI Actions =====
 $('#unlockBtn').addEventListener('click', async()=>{
-  const pw = $('#masterPassword').value;
-  if(!pw){ alert('Master şifrə daxil edin.'); return; }
-  const exists = hasVault();
-  const mode = $('#isFirstTime').value;
-  const openingNew = !exists || mode==='yes';
-  if(openingNew && exists===false){ /* proceed */ }
+  const pw = $('#masterPassword').value; if(!pw){ toast('Master şifrə daxil edin'); return; }
   const ok = await loadVaultFromStorageWith(pw);
-  if(!ok){ alert('Şifrə səhvdir və ya vault açıla bilmir.'); return; }
-  // Show app
+  if(!ok){ toast('Şifrə səhvdir və ya vault açıla bilmir'); return; }
   $('#authCard').classList.add('hidden');
   $('#appCard').classList.remove('hidden');
   renderList();
@@ -338,14 +353,7 @@ $('#unlockBtn').addEventListener('click', async()=>{
 
 $('#addBtn').addEventListener('click', ()=> openEditor(null));
 $('#cancelBtn').addEventListener('click', ()=> closeEditor());
-$('#lockBtn').addEventListener('click', ()=>{
-  // best effort: wipe sensitive fields
-  state.key = null; clearVaultInMemory(); $('#tbody').innerHTML='';
-  $('#appCard').classList.add('hidden');
-  $('#authCard').classList.remove('hidden');
-  $('#masterPassword').value='';
-});
-
+$('#lockBtn').addEventListener('click', ()=>{ state.key=null; clearVaultInMemory(); $('#tbody').innerHTML=''; $('#appCard').classList.add('hidden'); $('#authCard').classList.remove('hidden'); $('#masterPassword').value=''; toast('Vault kilidləndi'); });
 $('#q').addEventListener('input', (e)=>{ state.filter = e.target.value; renderList(); });
 
 $('#saveBtn').addEventListener('click', async()=>{
@@ -358,81 +366,45 @@ $('#saveBtn').addEventListener('click', async()=>{
     notes: $('#e_notes').value,
     updatedAt: nowISO(),
   };
-  if(!entry.title){ alert('Başlıq tələb olunur.'); return; }
+  if(!entry.title){ toast('Başlıq tələb olunur'); return; }
   if(state.editingId){
     const i = state.vault.entries.findIndex(x=>x.id===state.editingId);
     if(i>=0) state.vault.entries[i] = {...state.vault.entries[i], ...entry};
-  }else{
-    entry.createdAt = nowISO();
-    state.vault.entries.push(entry);
-  }
-  await saveVaultToStorage();
-  closeEditor(); renderList();
+  }else{ entry.createdAt = nowISO(); state.vault.entries.push(entry); }
+  await saveVaultToStorage(); closeEditor(); renderList(); toast('Yadda saxlandı');
 });
 
 $('#tbody').addEventListener('click', async(e)=>{
   const btn = e.target.closest('button'); if(!btn) return;
-  const id = btn.dataset.id; const act = btn.dataset.act;
-  const entry = state.vault.entries.find(x=>x.id===id);
-  if(!entry) return;
-  if(act==='copy'){
-    try{ await navigator.clipboard.writeText(entry.password||''); alert('Şifrə kopyalandı.'); }catch{ alert('Kopyalama alınmadı.'); }
-  }
-  if(act==='reveal'){
-    alert(`Şifrə: \n\n${entry.password||''}`);
-  }
-  if(act==='edit'){
-    openEditor(entry);
-  }
+  const id = btn.dataset.id; const act = btn.dataset.act; const entry = state.vault.entries.find(x=>x.id===id); if(!entry) return;
+  if(act==='copy'){ try{ await navigator.clipboard.writeText(entry.password||''); toast('Şifrə kopyalandı'); }catch{ toast('Kopyalama alınmadı'); } }
+  if(act==='reveal'){ alert(`Şifrə: \n\n${entry.password||''}`); }
+  if(act==='edit'){ openEditor(entry); }
   if(act==='del'){
-    if(confirm('Silmək istədiyinizə əminsiniz?')){
-      state.vault.entries = state.vault.entries.filter(x=>x.id!==id);
-      await saveVaultToStorage(); renderList();
-    }
+    if(confirm('Silmək istədiyinizə əminsiniz?')){ state.vault.entries = state.vault.entries.filter(x=>x.id!==id); await saveVaultToStorage(); renderList(); toast('Silindi'); }
   }
 });
 
 $('#exportBtn').addEventListener('click', ()=>{
-  const meta = readVaultMeta();
-  if(!meta || !meta.ciphertext){ alert('Boş və ya qeydsiz vault.'); return; }
+  const meta = readVaultMeta(); if(!meta || !meta.ciphertext){ toast('Boş və ya qeydsiz vault'); return; }
   const blob = new Blob([JSON.stringify(meta,null,2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `vault-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `vault-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`; a.click(); URL.revokeObjectURL(a.href);
 });
 
 $('#importFile').addEventListener('change', async(e)=>{
-  const file = e.target.files[0]; if(!file) return;
-  const text = await file.text();
-  try{
-    const meta = JSON.parse(text);
-    if(!(meta && meta.ciphertext && meta.iv && meta.salt)) throw new Error('Yanlış ehtiyat nüsxə faylı.');
-    writeVault(meta);
-    alert('Ehtiyat nüsxə daxil edildi. İndi master şifrə ilə yenidən daxil olun.');
-    location.reload();
-  }catch(err){ alert('Yükləmə xətası: '+err.message); }
+  const file = e.target.files[0]; if(!file) return; const text = await file.text();
+  try{ const meta = JSON.parse(text); if(!(meta && meta.ciphertext && meta.iv && meta.salt)) throw new Error('Yanlış ehtiyat nüsxə faylı'); writeVault(meta); alert('Ehtiyat daxil edildi. Yenidən daxil olun.'); location.reload(); }
+  catch(err){ alert('Yükləmə xətası: '+err.message); }
 });
 
-$('#changeMasterBtn').addEventListener('click', ()=>{ changeMasterPasswordFlow(); });
+$('#changeMasterBtn').addEventListener('click', ()=> changeMasterPasswordFlow());
 
-// Password field helpers
-$('#togglePwd').addEventListener('click', ()=>{
-  const el = $('#e_password'); el.type = el.type==='password' ? 'text' : 'password';
-});
-$('#copyPwd').addEventListener('click', async()=>{
-  try{ await navigator.clipboard.writeText($('#e_password').value||''); alert('Şifrə kopyalandı.'); }catch{ alert('Kopyalama alınmadı.'); }
-});
-
-function updatePwdStrength(){
-  const s = ($('#e_password').value||'');
-  let score = 0; if(s.length>=12) score++; if(/[a-z]/.test(s)&&/[A-Z]/.test(s)) score++; if(/\d/.test(s)) score++; if(/[^\w]/.test(s)) score++;
-  const map = ['Çox zəif','Zəif','Orta','Yaxşı','Güclü'];
-  $('#pwdStrength').textContent = 'Güclülük: ' + map[score];
-}
+// Password helpers
+$('#togglePwd').addEventListener('click', ()=>{ const el = $('#e_password'); el.type = el.type==='password' ? 'text' : 'password'; });
+$('#copyPwd').addEventListener('click', async()=>{ try{ await navigator.clipboard.writeText($('#e_password').value||''); toast('Şifrə kopyalandı'); }catch{ toast('Kopyalama alınmadı'); } });
 $('#e_password').addEventListener('input', updatePwdStrength);
 
+// Generator
 $('#genBtn').addEventListener('click', ()=>{
   const len = Math.max(8, Math.min(64, parseInt($('#genLen').value||'16')));
   const useSymbols = $('#genSymbols').checked;
@@ -442,7 +414,6 @@ $('#genBtn').addEventListener('click', ()=>{
   for(let i=0;i<len;i++){ out += chars[rnd[i] % chars.length]; }
   $('#e_password').value = out; updatePwdStrength();
 });
-
 </script>
 </body>
 </html>
